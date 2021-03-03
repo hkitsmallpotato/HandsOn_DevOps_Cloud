@@ -281,7 +281,96 @@ and copy the token into the login screen.
 
 After login, click the box on the top, and select "All namespaces". This will show the full info across all namespaces.
 
+
+## Install minikube ingress addon
+
+TODO
+
+To make life easier during development, minikube support the use of addons to simplifies installation of some common services. Here, we will follow the guide for the [ingress addon](https://minikube.sigs.k8s.io/docs/tutorials/nginx_tcp_udp_ingress/).
+
+Run the command:
+
+```bash
+minikube addons enable ingress
+```
+
+```
+* Verifying ingress addon...
+* The 'ingress' addon is enabled
+```
+
 ## Using helm to deploy common apps
+
+Let's try deploying common applications onto k8s using helm charts. A popular provider is bitnami, which provide ready-to-use images in various format as well, such as docker image and VM image file. Here we use [Wordpress](https://bitnami.com/stack/wordpress/helm) as an example.
+
+First add bitnami as a helm chart repository:
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+```
+
+```
+"bitnami" has been added to your repositories
+```
+
+We need to customize the deployment parameters - in particular, check the [section for exposure](https://github.com/bitnami/charts/tree/master/bitnami/wordpress/#exposure-parameters). The default value for the k8s *Service Type* is *Load Balancer*, which is not available in any bare metal settings in general. (In the world of k8s, Load Balancer general refers to cloud-provisioned one - in particular it must be possible to provision them on the fly via an API, that may differ across vendors. However, there is project such as [MetalLB](https://metallb.universe.tf/) that aims to solve this problem directly)
+
+[TODO](https://docs.bitnami.com/kubernetes/apps/wordpress/configuration/configure-use-ingress/)
+
+Install with our own parameters:
+
+```bash
+helm install my-release \
+> --set service.type=NodePort \
+> bitnami/wordpress
+```
+
+Output:
+
+```
+NAME: my-release
+LAST DEPLOYED: Wed Mar  3 16:40:10 2021
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+NOTES:
+** Please be patient while the chart is being deployed **
+
+Your WordPress site can be accessed through the following DNS name from within your cluster:
+
+    my-release-wordpress.default.svc.cluster.local (port 80)
+
+To access your WordPress site from outside the cluster follow the steps below:
+
+1. Get the WordPress URL by running these commands:
+
+   export NODE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services my-release-wordpress)
+   export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
+   echo "WordPress URL: http://$NODE_IP:$NODE_PORT/"
+   echo "WordPress Admin URL: http://$NODE_IP:$NODE_PORT/admin"
+
+2. Open a browser and access WordPress using the obtained URL.
+
+3. Login with the following credentials below to see your blog:
+
+  echo Username: user
+  echo Password: $(kubectl get secret --namespace default my-release-wordpress -o jsonpath="{.data.wordpress-password}" | base64 --decode)
+
+```
+
+Remember that it has only constructed the resources - the actual containers running it takes time to start. Check the progress:
+
+```bash
+kubectl get pods
+```
+
+Until it shows:
+
+```
+NAME                                    READY   STATUS    RESTARTS   AGE
+my-release-mariadb-0                    1/1     Running   0          105s
+my-release-wordpress-67dbfd44fb-48r2c   1/1     Running   0          106s
+```
 
 
 
