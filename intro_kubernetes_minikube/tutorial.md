@@ -19,6 +19,8 @@ TODO
 
 [Minikubes](https://minikube.sigs.k8s.io/docs/) is a tool to make local development with k8s easier, by making it possible to quickly and easily spin up a local k8s cluster.
 
+[Helm](https://helm.sh/) is both a templating system to make complex kubernetes deployment with long yaml files (you will see this later) manageable, as well as a package manager system for kubernetes.
+
 ## Bootup a local minikube cluster
 
 `minikube` is already installed by default on Google Cloud Shell. First, let's check the status by entering the following command into the console:
@@ -200,8 +202,87 @@ When you are done, press `Ctrl-C` to stop the port-forwarding process.
 
 ## Install k8s dashboard
 
+There is an [official dashboard](https://github.com/kubernetes/dashboard) for kubernetes, which let you more easily manage and monitor a k8s cluster using a UI. It is not installed by default, and there are different ways to install it: manual yaml deployment, helm charts, or minikube addon.
+
+### Manual install
+
+This method is recommended as it is applicable to real cluster as well. Apply the recommended yaml file:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
+```
+
+This will create a new *namespace* named `kubernetes-dashboard`, and create a bunch of resources:
+
+```
+namespace/kubernetes-dashboard created
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+```
+
+A namespace is a way to isolate workloads to avoid name conflict. This makes it more manageable as well.
+
+For security reason, the dashboard should not be exposed to public - we will use networking method that only expose it internally. Turns out there is a special command for the dashboard: Open a new terminal, and type:
+
+```bash
+kubectl proxy
+```
+
+It will output
+
+```
+Starting to serve on 127.0.0.1:8001
+```
+
+and then wait for connection (do **not** close the terminal or Ctrl-C until you're done using it)
+
+The URL locally is:
+
+```
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+```
+
+For Google Cloud Shell user, use the web preview feature again. Click <walkthrough-web-preview-icon></walkthrough-web-preview-icon> <walkthrough-spotlight-pointer cssSelector="button[spotlightid=cloud-shell-web-preview-button]">Web Preview</walkthrough-spotlight-pointer> -> "Change port", then enter "8001". In the new browser window, edit the URL and append the path portion of the URL above - i.e. `api/v1/namespaces/...` (while removing the query parameter `?authuser...`). You should see the screen below:
+
+TODO (screenshot)
+
+We need to create user and get the secret token to login. Following the [official guide](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md), the additional yaml files have been prepared and are available in this directory.
+
+TODO
+
+Output:
+
+```
+serviceaccount/admin-user created
+```
+
+```
+clusterrolebinding.rbac.authorization.k8s.io/admin-user created
+```
+
+Then run:
+
+```bash
+kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa/admin-user -o jsonpath="{.secrets[0].name}") -o go-template="{{.data.token | base64decode}}"
+```
+
+and copy the token into the login screen.
+
+After login, click the box on the top, and select "All namespaces". This will show the full info across all namespaces.
 
 ## Using helm to deploy common apps
+
 
 
 ## (Optional) Connecting to a remote cluster
