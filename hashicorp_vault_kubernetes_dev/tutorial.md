@@ -288,6 +288,10 @@ kubectl logs --namespace=vault vault-0
 2021-03-04T13:58:12.949Z [INFO]  core: vault is unsealed
 ```
 
+Hint: The doc do mention a way to change the k8s readiness probe used instead to circumvent this issue. The intention is to do that together with a `postStart` script that executes automatically on pod ready, and that script will perform the initialization and first unseal.
+
+Hint: I find the whole section "Additional Server Config" in the official guide to be crucial to installing Vault successfully, despite what its name may suggests.
+
 ## Install client and accessing the Vault server
 
 At this point things become easier. Follow the [tutorial](https://learn.hashicorp.com/tutorials/vault/getting-started-install?in=vault/getting-started) with the standard linux procedure (add trust to a new repo, then download and install packaged software using OS provided tool):
