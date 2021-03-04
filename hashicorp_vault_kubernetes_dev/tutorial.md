@@ -52,6 +52,35 @@ helm install vault hashicorp/vault --namespace vault
 
 The official documentation is very long and may be confusing, so here are some clarifications:
 
+Each server mode provide a different set of preset defaults for the underlying config. The two main configuration relevant to us is the seal method, and the storage backend used. The storage backend default progresses from in memory for dev mode, to file store in standalone mode, to integrated storage using the Raft consensus protocol in HA (High availability) mode. The default for the seal method is Shamir's secret sharing algorithm.
+
+The Vault server itself is just a program and its behavior is configured by supplying a [configuration file](https://www.vaultproject.io/docs/configuration) in HCL or json format. On the other hand, a Helm deployment consists of the Vault server *together with surrounding setups*. Thus there are two layers of config:
+
+1. The [Helm chart config parameters](https://www.vaultproject.io/docs/platform/k8s/helm/configuration) (specified using the standard format/mechanism for a generic Helm Chart config)
+2. The vault server config, which resides in the `server` section of the Helm config above (specifically, it is the field `server.<mode>.config`, where `<mode>` is one of `dev`, `standalone`, or `ha`. The field's value should be the full server config file. Helm provide a [special mechanism](https://helm.sh/docs/chart_template_guide/yaml_techniques/) to allow this kind of value by using a trick in yaml to allow multiline string.
+
+As an example, the official guide has the following (Recalling that Helm config can either be specified on command line argument as `--set "<yaml path>=<value>"`, or saved into a yaml file, then supplied via `-f override-values.yaml`):
+
+```
+server:
+  ...(snipped)...
+  ha:
+      enabled: true
+      replicas: 3
+
+      config: |
+        ui = true
+
+        listener "tcp" {
+          tls_disable = 1
+...(snipped)
+```
+
+Notice how the mode has to be enabled first.
+
+(Hint: even the server config can be specified inline using `--set server.standalone.config='{ listener "tcp" { address = "0.0.0.0:8200" }'`, for example)
+
+Back to our task.
 
 The install command should show you this output:
 
