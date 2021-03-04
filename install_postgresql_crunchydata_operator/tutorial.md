@@ -44,6 +44,8 @@ This creates a *Job*, which is a one-off program to perform the installation ste
 
 The manual specifies that the name for this pod is `pgo-deployer`.
 
+Hint: In more restrictive hosts (such as when your k8s is provided inside a docker container), the filesystem you have access to may not support enough operations for the default config to work. The most common scenario in previous version is that the default storage class is set to `ReadWriteMany` when only `ReadWriteOnce` is supported. (Read the whole of the "Storage Settings" section in the [config reference](https://access.crunchydata.com/documentation/postgres-operator/4.6.1/installation/configuration/) )
+
 ## Install the pgo client
 
 Download and run the client installation script:
