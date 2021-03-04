@@ -18,6 +18,9 @@ These significantly extended the scope of what we may achieve with this shell. T
 
 ## Contents
 
-| Lab                                         | Status  | Link                       |
-|---------------------------------------------|---------|----------------------------|
-| Introduction to Kubernetes through Minikube | WIP     | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=intro_kubernetes_minikube%2Ftutorial.md&shellonly=true) |
+| Lab                                                 | Status  | Link                       |
+|-----------------------------------------------------|---------|----------------------------|
+| Introduction to Kubernetes through Minikube         | WIP     | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=intro_kubernetes_minikube%2Ftutorial.md&shellonly=true) |
+| Install PostgreSQL vis CrunchyData Operator         | Beta    | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=install_postgresql_crunchydata_operator%2Ftutorial.md&shellonly=true) |
+| Hashicorp Vault on Kubernetes (development version) | WIP     | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=hashicorp_vault_kubernetes_dev%2Ftutorial.md&shellonly=true) |
+| Using Traefik as Ingress                            | WIP     | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=traefik_ingress%2Ftutorial.md&shellonly=true) |
