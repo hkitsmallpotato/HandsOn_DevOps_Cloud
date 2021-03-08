@@ -150,3 +150,85 @@ TEST SUITE: None
 
 (Notice that what we did is actually to override the default chart values. `--set` override individual values directly on the command line, while `-f` uses a file.)
 
+## Testing Traefik Basic Routing
+
+Now we test that the installation works. We have prepared a sample deployment manifest in this directory. For better isolation, this test will be done within the `test-traefik` namespace. Let's create the namespace first:
+
+```bash
+kubectl create ns test-traefik
+```
+
+Then apply the deployment and the service:
+
+```bash
+kubectl apply -f whoami-deployment.yaml
+```
+
+```bash
+kubectl apply -f whoami-service.yaml
+```
+
+We are using the [test container](https://github.com/traefik/whoami) provided by Traefik, whose docker image name is `traefik/whoami`.
+
+Let's inspect the ingress file. In the metadata section:
+
+```yaml
+metadata:
+  name: "foo"
+  namespace: test-traefik
+  labels:
+    routes: true
+```
+
+Notice that we need to have the `routes: true` key to enable management by Traefik due to our custom designed static config.
+
+For the matching rules, notice that there is `path` argument but no `host` argument. This is deliberate as we are behind a reverse proxy in web preview mode, so the host will be `127.0.0.1:port`. Unfortunately, k8s ingress's host field only support real domain name (including [some support](https://github.com/traefik/traefik/issues/792) for wildcard domain). Hence, we omit the field entirely, so the matching rule will match any/all hosts.
+
+Finally, let's apply the ingress:
+
+```bash
+kubectl apply -f whoami-ingress.yaml
+```
+
+### Verification
+
+To actually tests it, we need to learn one more concept in Traefik: Entrypoint. Traefik centralizes routes into a single entry point, which is a specific port on the main pod hosting Traefik. This port number can be examined in the Traefik dashboard's home page. By default, it should be 8000. Therefore, we run this command:
+
+```bash
+kubectl port-forward -n traefik-v2 $(kubectl get pods -n traefik-v2 --selector "app.kubernetes.io/name=traefik" --output=name) 8000:8000
+```
+
+(That is, the same command as that used to expose the dashboard, but ports changed to `8000:8000`)
+
+Then, using web preview on port `8000`, with the URL path being `/foo` or `/bar` as our ingress configured, should take you to the `whoami` pod with the following output:
+
+```
+Hostname: whoami-deployment-8557b59f65-tc5hj
+IP: 127.0.0.1
+IP: 172.17.0.6
+RemoteAddr: 172.17.0.7:44830
+GET /foo HTTP/1.1
+Host: 127.0.0.1:8000
+User-Agent: Mozilla/5.0...(snipped)
+Accept: text/html,application/xhtml+xml,...(snipped)
+Accept-Encoding: gzip, deflate, br
+Accept-Language: en-US,en;...(snipped)
+Cache-Control: max-age=0
+Sec-Ch-Ua: "Chromium";...(snipped)
+Sec-Ch-Ua-Mobile: ?0
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Sec-Gpc: 1
+Upgrade-Insecure-Requests: 1
+X-Forwarded-For: 127.0.0.1
+X-Forwarded-Host: 127.0.0.1:8000
+X-Forwarded-Port: 8000
+X-Forwarded-Proto: http
+X-Forwarded-Server: traefik-c47c6c548-xvhvt
+X-Real-Ip: 127.0.0.1
+```
+
+## Congratulations!
+
