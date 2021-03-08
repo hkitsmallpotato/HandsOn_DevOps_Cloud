@@ -21,6 +21,8 @@ TODO
 
 [Helm](https://helm.sh/) is both a templating system to make complex kubernetes deployment with long yaml files (you will see this later) manageable, as well as a package manager system for kubernetes.
 
+Hint: Helm v2.x is different from Helm v3.x - the old version requires you to deploy a special component, called `Tiller`, into the cluster. This occupies some server resources, and may be a concern for those on a tight budget. Fortunately, this is no longer necessary in the new version. More confusingly, some installation procedures for important software in the k8s ecosystem may behave differently on these 2 verions. Google Cloud Shell comes pre-installed with Helm v3.x, and as it is the new version, you mostly need not worry about the version difference, as long as you stick to instruction for Helm v3.x on their official doc.
+
 ## Bootup a local minikube cluster
 
 `minikube` is already installed by default on Google Cloud Shell. First, let's check the status by entering the following command into the console:
@@ -281,6 +283,28 @@ and copy the token into the login screen.
 
 After login, click the box on the top, and select "All namespaces". This will show the full info across all namespaces.
 
+### Minikube addon
+
+Often in development, you need to repeatedly create fresh new k8s clusters. If you are using minikube, you can skip all of the above and get one quickly simply by typing this:
+
+```bash
+minikube dashboard
+```
+
+The output would be like:
+
+```
+* Enabling dashboard ...
+  - Using image kubernetesui/dashboard:v2.1.0
+  - Using image kubernetesui/metrics-scraper:v1.0.4
+* Verifying dashboard health ...
+* Launching proxy ...
+* Verifying proxy health ...
+* Opening http://127.0.0.1:34005/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/ in your default browser...
+  - http://127.0.0.1:34005/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/
+```
+
+Simply open web preview as above, changing the port number to what is indicated in the output (in the example above, it is 34005). Then, append the path portion of the URL above (`/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/`)
 
 ## Install minikube ingress addon
 
