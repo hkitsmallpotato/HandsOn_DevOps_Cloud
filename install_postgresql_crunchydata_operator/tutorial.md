@@ -181,3 +181,6 @@ View port 5050 using Google Cloud Shell's web preview.
 
 TODO
 
+### What to do next
+
+For more on operator, see for example the [operator framework](https://operatorframework.io/) for a collection.
