@@ -1,4 +1,4 @@
-# Traefik for Ingress
+# Using Traefik as Ingress
 
 ## Overview
 

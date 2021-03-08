@@ -16,11 +16,25 @@ Previously, all the factors above taken together do put some limit on Google Clo
 
 These significantly extended the scope of what we may achieve with this shell. This repo is an experiment to implement a set of Hands on Lab using the Shell.
 
+## Usage
+
+Click on the "Open in Google Cloud Shell" button.
+
+(Hint: To further assuage any anxiety, one can choose not to trust the repo when opening tutorials in Google Cloud Shell. This will results in Google allocating a completely ephemeral VM to you, where even the home directory is mostly empty (and will be cleared after session ends). Of course your original home directory is actually still stored safely, tucked away from the current VM.)
+
+(Hint: The last hint can be taken even further: as Google git clone the repo, you may do consecutive tutorials within the same completely ephemeral enviornment, simply by changing directory, then entering this command into the console: `teachme tutorial.md`)
+
 ## Contents
+
+Note that for Status:
+
+- WIP means that it is still work in prgress
+- Beta means it should be usable, but may lack polish
+- Ready means it is ready for use.
 
 | Lab                                                 | Status  | Link                       |
 |-----------------------------------------------------|---------|----------------------------|
-| Introduction to Kubernetes through Minikube         | WIP     | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=intro_kubernetes_minikube%2Ftutorial.md&shellonly=true) |
-| Install PostgreSQL vis CrunchyData Operator         | Beta    | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=install_postgresql_crunchydata_operator%2Ftutorial.md&shellonly=true) |
-| Hashicorp Vault on Kubernetes (development version) | WIP     | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=hashicorp_vault_kubernetes_dev%2Ftutorial.md&shellonly=true) |
-| Using Traefik as Ingress                            | WIP     | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=traefik_ingress%2Ftutorial.md&shellonly=true) |
+| Introduction to Kubernetes through Minikube         | Beta    | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=intro_kubernetes_minikube%2Ftutorial.md&shellonly=true) |
+| Install PostgreSQL via CrunchyData Operator         | Beta    | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=install_postgresql_crunchydata_operator%2Ftutorial.md&shellonly=true) |
+| Hashicorp Vault on Kubernetes (development version) | Beta    | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=hashicorp_vault_kubernetes_dev%2Ftutorial.md&shellonly=true) |
+| Using Traefik as Ingress                            | Beta    | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fhkitsmallpotato%2FHandsOn_DevOps_Cloud.git&cloudshell_tutorial=traefik_ingress%2Ftutorial.md&shellonly=true) |
