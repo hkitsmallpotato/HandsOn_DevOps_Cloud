@@ -92,3 +92,61 @@ TODO (Screenshot)
 
 ## Updating Traefik with Static Configuration
 
+To make it usable, we have to configure it. Our detailed configuration is primarily from this [blog post](https://traefik.io/blog/install-and-configure-traefik-with-helm/), with help from extensively reading the official doc. For simplicity, in this tutorial we use a customized config that is stripped down to the bare bone to illustrate the principles.
+
+### Detailed Explanation
+
+We need to supply the static configuration. In our case, we only enable the k8s ingress provider. This provider perform dynamic configuration by reading from the cluster's ingress resource data and use that as the desired state, that is, traefik acts as an ingress controller in the k8s sense. However, Traefik is more powerful than the minimal requirement and provide more advanced functionalities that you can turn on as needed.
+
+There are many ways to supply a static configuration. One of the way is by having an actual config file inside the Traefik pod. (Traefik supports multiple formats for that file, and Traefik do support other ways of doing static config, but for consistency, we use yaml format and an honest config file.) Our static config is then as follows:
+
+```yaml
+providers:
+  kubernetesIngress:
+    namespaces:
+      - "default"
+      - "test-traefik"
+    labelselector: "routes = true"
+```
+
+What happens is that we instruct Traefik that for the k8s ingress provider, it should only manages the `default` and the `test-traefik` namespaces. Moreover, we provide a way for user to exert fine grained control by imposing that Traefik should only manages those ingress resources that contain a metadata entry of label type, whose key-value pair is `routes: true`.
+
+We still need a way to "feed" this file into the pod. To do this, we do two things:
+
+1. Declare a k8s `ConfigMap` resource type to save the data of this config file.
+2. Mount the config file as an volume into the pod, and supply the path of the config file to Traefik.
+
+Step 1 is done by a plain k8s manifest, while step 2 is done by a [Helm chart values](https://helm.sh/docs/chart_template_guide/values_files/) file. We used `additonalArguments`, a _Helm chart value_, to supply the command line argument that are used when the container starts Traefik. By contrast, the command line argument we used for the `traefik` binary is `--providers.file.filename`.
+
+### Execution
+
+For convinience, the files have been prepared under the directory of this tutorial.
+
+First create the `ConfigMap` resource:
+
+```bash
+kubectl apply -f traefik-config.yaml
+```
+
+```
+configmap/traefik-config created
+```
+
+Then update the helm installation:
+
+```bash
+helm upgrade --cleanup-on-fail traefik traefik/traefik -n traefik-v2 -f traefik-chart-values.yaml
+```
+
+```
+Release "traefik" has been upgraded. Happy Helming!
+NAME: traefik
+LAST DEPLOYED: Sat Mar  6 08:04:43 2021
+NAMESPACE: traefik-v2
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+```
+
+(Notice that what we did is actually to override the default chart values. `--set` override individual values directly on the command line, while `-f` uses a file.)
+
