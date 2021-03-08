@@ -20,7 +20,19 @@ An ingress controller is then a particular kind of k8s controller, one that is r
 
 ### Traefik as an ingress
 
+Traefik is an edge router that provide similar function as a k8s ingress, or a reverse proxy like nginx. What sets it apart is its emphasis on **automatic service discovery** - instead of manually writing config file in a centralized manner, you annotate your web services with routing and other information. Traefik query the system at runtime, and _dynamically_ reconfigure itself (and continually too!) to keep itself up to date with the desired setup as expressed by those services.
 
+Traefik's [configuration](https://doc.traefik.io/traefik/getting-started/configuration-overview/) is separated into two parts: static configuration, and dynamic configuration. Static configuration must be specified at the Traefik program's startup time - changes to it requires a restart. Dynamic configuration, which are fetched from the services, are auto-updated.
+
+From the link above, Traefik accept multiple format for the static config, and it has a specific rule of precedence for loading the static config from multiple possible sources - refer to the link for details. (and refer to it again when you get to the step that uses it)
+
+One of the thing we need to specify in the static configuration is which **provider** we will use. A provider is an infrastructure component that provides the dynamic configuration, by exposing an integration API against which Traefik can query periodically. Traefik supports many different provider, but for this lab we will use the [k8s ingress](https://doc.traefik.io/traefik/providers/kubernetes-ingress/) one. The doc on that page are almost all static configuration (except for the sample k8s manifests) In our lab, we will use the `namespaces` and `labelSelector` static provider config.
+
+Notes: For use cases that wish for more expressiveness in the language, it is recommended to use the k8s Custom Resource Definition (CRD) provider instead. (Provided you have the access right to use it in your cluster)
+
+Because we are using the k8s ingress provider, routing info are configured by the end user declaring `Ingress` k8s object with appropiate data. These objects, per k8s architecture and design, are systematically stored in the control plane, and can be queried programmatically through k8s admin API, which is what the Traefik provider does.
+
+This [page](https://doc.traefik.io/traefik/routing/providers/kubernetes-ingress/) provide the doc for dynamic config of k8s ingress provider. Refer to the section "Configuration Example", on the tab "Ingress" and "Whoami" for details.
 
 ## Initial Install of Traefik
 
@@ -231,4 +243,10 @@ X-Real-Ip: 127.0.0.1
 ```
 
 ## Congratulations!
+
+### Reference
+
+The Traefik doc can be a bit confusing to read at first, because the static/dynamic distinction are not demarcated clearly. After you carefully work and think through this lab, you should have enough background knowledge to navigate it. With this preparation, you can read it more fully to explore the many more advanced features Traefik has to offer.
+
+As a first taste, consider reading the [routing](https://doc.traefik.io/traefik/routing/routers/) page in detail. It contains doc for the full routing language that Traefik supports.
 
