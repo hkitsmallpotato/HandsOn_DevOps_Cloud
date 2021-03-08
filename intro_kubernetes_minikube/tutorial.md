@@ -308,8 +308,6 @@ Simply open web preview as above, changing the port number to what is indicated 
 
 ## Install minikube ingress addon
 
-TODO
-
 To make life easier during development, minikube support the use of addons to simplifies installation of some common services. Here, we will follow the guide for the [ingress addon](https://minikube.sigs.k8s.io/docs/tutorials/nginx_tcp_udp_ingress/).
 
 Run the command:
@@ -321,6 +319,103 @@ minikube addons enable ingress
 ```
 * Verifying ingress addon...
 * The 'ingress' addon is enabled
+```
+
+For convinience, the test deployment files have beeb prepared. Apply them:
+
+```bash
+kubectl apply -f ingress-addon-test.yaml
+```
+
+After that, check our services:
+
+```bash
+kubectl get service -A
+```
+
+```
+NAMESPACE     NAME                                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+default       kubernetes                           ClusterIP   10.96.0.1        <none>        443/TCP                  11m
+default       redis-service                        ClusterIP   10.110.192.165   <none>        6379/TCP                 9m7s
+kube-system   ingress-nginx-controller-admission   ClusterIP   10.110.138.127   <none>        443/TCP                  7m34s
+kube-system   kube-dns                             ClusterIP   10.96.0.10       <none>        53/UDP,53/TCP,9153/TCP   11m
+```
+
+(Sample only - note the `ingress-nginx-controller-admission` service in the `kube-system` namespace)
+
+Now, run this command:
+
+```bash
+kubectl patch configmap tcp-services -n kube-system --patch '{"data":{"6379":"default/redis-service:6379"}}'
+```
+
+What it does is to update the `ConfigMap` resource type, which records the routing data of our nginx ingress. (You will learn more about ingress in subsequent hands on lab) In particular, we added this mapping:
+
+```
+"6379":"default/redis-service:6379"
+```
+
+Which says to route requests coming from port 6379, into the service `redis-service` in the `default` namespace, that is listening on port 6379.
+
+You can optionally run the check as suggested by the official guide:
+
+```bash
+kubectl get configmap tcp-services -n kube-system -o yaml
+```
+
+Finally, we need the following step:
+
+```bash
+kubectl patch deployment ingress-nginx-controller --patch "$(cat ingress-nginx-controller-patch.yaml)" -n kube-system
+```
+
+The reason is that the ingress is implemented by an nginx web server, which resides in a pod. (It is what backs the `ingress-nginx-controller-admission` service you see above) Having everything configured correctly would be useless, if this nginx server that does the routing, is itself not exposed for external access! The command above changes it so that the port 6379 on the outside (`hostPort`) is connected with the same port inside the pod (`containerPort`). So the whole chain of event when we make a request, is: host@6379 -> nginx@6379 -> read off routing map, should route to `default/redis-service`@6379.
+
+We can now test our setup. As redis works over a TCP protocol, and accept simple text command such as `hello`, `ping`, `set <key> <value>`, and `get <key>` directly, we can even use them to try out redis on the side:
+
+```
+telnet $(minikube ip) 6379
+Trying 192.168.49.2...
+Connected to 192.168.49.2.
+Escape character is '^]'.
+
+hello
+*14
+$6
+server
+$5
+redis
+$7
+version
+$5
+6.2.1
+$5
+proto
+:2
+$2
+id
+:3
+$4
+mode
+$10
+standalone
+$4
+role
+$6
+master
+$7
+modules
+*0
+ping
++PONG
+set foo 2
++OK
+get foo
+$1
+2
+quit
++OK
+Connection closed by foreign host.
 ```
 
 ## Using helm to deploy common apps
@@ -405,4 +500,13 @@ my-release-wordpress-67dbfd44fb-48r2c   1/1     Running   0          106s
 
 
 ## Congratulations!
+
+### Reference
+
+https://stackoverflow.com/questions/59164010/how-to-map-localhost-to-minikube-with-ingress
+
+https://github.com/kubernetes/minikube/issues/9116
+
+https://gist.github.com/dockerlead/18696732e8ecb1a97772911e9a0d4637
+
 
