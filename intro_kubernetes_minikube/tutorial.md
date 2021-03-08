@@ -261,7 +261,13 @@ TODO (screenshot)
 
 We need to create user and get the secret token to login. Following the [official guide](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md), the additional yaml files have been prepared and are available in this directory.
 
-TODO
+```bash
+kubectl apply -f admin-user.yaml
+```
+
+```bash
+kubectl apply -f role-binding.yaml
+```
 
 Output:
 
@@ -326,6 +332,8 @@ For convinience, the test deployment files have beeb prepared. Apply them:
 ```bash
 kubectl apply -f ingress-addon-test.yaml
 ```
+
+**Hint**: Multiple k8s resources can be specified in the same file - just separate them with a line consisting of exactly three dashes (`---`).
 
 After that, check our services:
 

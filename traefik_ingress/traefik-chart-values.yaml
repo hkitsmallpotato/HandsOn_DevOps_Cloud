@@ -1,0 +1,7 @@
+additionalArguments:
+  - --providers.file.filename=/data/traefik-config.yaml
+volumes:
+  - mountPath: /data
+    name: traefik-config
+    type: configMap
+

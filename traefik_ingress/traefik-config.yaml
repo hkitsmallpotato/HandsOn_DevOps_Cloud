@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik-config
+  namespace: traefik-v2
+data:
+  traefik-config.yaml: |
+    providers:
+      kubernetesIngress:
+        namespaces:
+          - "default"
+          - "test-traefik"
+        labelselector: "routes = true"
+
