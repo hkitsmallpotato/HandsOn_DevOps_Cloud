@@ -420,9 +420,11 @@ Connection closed by foreign host.
 
 ## Using helm to deploy common apps
 
-Let's try deploying common applications onto k8s using helm charts. A popular provider is bitnami, which provide ready-to-use images in various format as well, such as docker image and VM image file. Here we use [Wordpress](https://bitnami.com/stack/wordpress/helm) as an example.
+**Warning**: Bitnami helm charts are of production strength and carry significant complexities beyond the bare minimum needed. In particular since the usual deployment scenario is on a public facing VM with public IP and cloud load balancer, deploying them in development enviornment can ranges from needing a few fiddling to very difficult. For example, both wordpress and joomla have absolute URL that depends on recognizing the hosts from HTTP request header, and so setting them up behind reverse proxy (like in our case) is hard to pull off. Refer to `additional-info.md` in this directory for something more.
 
-First add bitnami as a helm chart repository:
+Let's try deploying common applications onto k8s using helm charts. A popular provider is bitnami, which provide production grade images in various format as well, such as docker image and VM image file. Here we use [Drupal](https://bitnami.com/stack/drupal/helm) as an example.
+
+First add bitnami as a helm chart repository and update it:
 
 ```bash
 helm repo add bitnami https://charts.bitnami.com/bitnami
@@ -432,72 +434,144 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 "bitnami" has been added to your repositories
 ```
 
-We need to customize the deployment parameters - in particular, check the [section for exposure](https://github.com/bitnami/charts/tree/master/bitnami/wordpress/#exposure-parameters). The default value for the k8s *Service Type* is *Load Balancer*, which is not available in any bare metal settings in general. (In the world of k8s, Load Balancer general refers to cloud-provisioned one - in particular it must be possible to provision them on the fly via an API, that may differ across vendors. However, there is project such as [MetalLB](https://metallb.universe.tf/) that aims to solve this problem directly)
+```bash
+helm repo update
+```
 
-[TODO](https://docs.bitnami.com/kubernetes/apps/wordpress/configuration/configure-use-ingress/)
+```
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "bitnami" chart repository
+Update Complete. ⎈Happy Helming!⎈
+```
+
+We need to customize the deployment parameters - in particular, check the [section for exposure](https://github.com/bitnami/charts/tree/master/bitnami/drupal/#traffic-exposure-parameters). The default value for the k8s *Service Type* is *Load Balancer*, which is not available in any bare metal settings in general. (In the world of k8s, Load Balancer general refers to cloud-provisioned one - in particular it must be possible to provision them on the fly via an API, that may differ across vendors. However, there is project such as [MetalLB](https://metallb.universe.tf/) that aims to solve this problem directly)
+
+In our case, we will use `NodePort` for convinience.
+
+Create a new namespace for isolation as usual:
+
+```bash
+kubectl create ns dr
+```
+
+```
+namespace/dr created
+```
 
 Install with our own parameters:
 
 ```bash
-helm install my-release \
-> --set service.type=NodePort \
-> bitnami/wordpress
+helm install -n dr test2 bitnami/drupal --set service.type=NodePort
 ```
 
 Output:
 
 ```
-NAME: my-release
-LAST DEPLOYED: Wed Mar  3 16:40:10 2021
-NAMESPACE: default
+NAME: test2
+LAST DEPLOYED: Sun Mar  7 13:22:58 2021
+NAMESPACE: dr
 STATUS: deployed
 REVISION: 1
+TEST SUITE: None
 NOTES:
-** Please be patient while the chart is being deployed **
+*******************************************************************
+*** PLEASE BE PATIENT: Drupal may take a few minutes to install ***
+*******************************************************************
 
-Your WordPress site can be accessed through the following DNS name from within your cluster:
+1. Get the Drupal URL:
 
-    my-release-wordpress.default.svc.cluster.local (port 80)
+  Or running:
 
-To access your WordPress site from outside the cluster follow the steps below:
+  export NODE_PORT=$(kubectl get --namespace dr -o jsonpath="{.spec.ports[0].nodePort}" services test2-drupal)
+  export NODE_IP=$(kubectl get nodes --namespace dr -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Drupal URL: http://$NODE_IP:$NODE_PORT/"
 
-1. Get the WordPress URL by running these commands:
-
-   export NODE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services my-release-wordpress)
-   export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
-   echo "WordPress URL: http://$NODE_IP:$NODE_PORT/"
-   echo "WordPress Admin URL: http://$NODE_IP:$NODE_PORT/admin"
-
-2. Open a browser and access WordPress using the obtained URL.
-
-3. Login with the following credentials below to see your blog:
+2. Get your Drupal login credentials by running:
 
   echo Username: user
-  echo Password: $(kubectl get secret --namespace default my-release-wordpress -o jsonpath="{.data.wordpress-password}" | base64 --decode)
+  echo Password: $(kubectl get secret --namespace dr test2-drupal -o jsonpath="{.data.drupal-password}" | base64 --decode)
 
 ```
 
 Remember that it has only constructed the resources - the actual containers running it takes time to start. Check the progress:
 
 ```bash
-kubectl get pods
+kubectl get pods -n dr
 ```
 
 Until it shows:
 
 ```
-NAME                                    READY   STATUS    RESTARTS   AGE
-my-release-mariadb-0                    1/1     Running   0          105s
-my-release-wordpress-67dbfd44fb-48r2c   1/1     Running   0          106s
+NAME                            READY   STATUS    RESTARTS   AGE
+test2-mariadb-0                 1/1     Running   0          105s
+test2-drupal-67dbfd44fb-48r2c   1/1     Running   0          106s
 ```
 
+Do the usual port forwarding:
+
+```bash
+kubectl port-forward -n dr svc/test2-drupal 9102:80
+```
+
+Then open web preview similarly on port 9102. You should see the Drupal webpage. Follow the instruction in the helm deployment above to display the initial admin password.
 
 
 ## (Optional) Connecting to a remote cluster
 
+Often, you want to connect to a remote k8s cluster and perform operation on it using your local computer. We demo this below.
+
+First, obtain the kubernetes config file from your cluster provider (this varies based on the vendor, e.g. [this](https://stackoverflow.com/questions/61829214/how-to-export-kubeconfig-file-from-existing-cluster#61829308) ).
+
+Then, export the enviornmental variable:
+
+```bash
+export KUBECONFIG=<path to your file>
+```
+
+Then, when you use the `kubectl` command line, you will be operating against that cluster.
+
+**Hint**: It is possible to specify more than one remote cluster in the config file, or to have multiple config files, one for each remote cluster. In those cases you must specify which cluster you mean, by the command line argument `--context=<cluster name>`. See [this](https://ahmet.im/blog/mastering-kubeconfig/) for similar hints.
 
 ## Cleanup
 
+To uninstall a helm deployment:
+
+```bash
+helm uninstall <release name> -n <namespace name>
+```
+
+To delete a kubernetes namespace:
+
+```bash
+kubectl delete ns <namespace name>
+```
+
+To stop minikube:
+
+```bash
+minikube stop
+```
+
+```
+* Stopping node "minikube"  ...
+* Powering off "minikube" via SSH ...
+* 1 nodes stopped.
+```
+
+The data is still preserved though. Once you restart minikube you should find that the original deployments before shutdown are back.
+
+On the other hand, if you want to completely teardown the cluster, so that you get a clean/fresh one on the next restart:
+
+```bash
+minikube delete
+```
+
+```
+* Deleting "minikube" in docker ...
+* Deleting container "minikube" ...
+* Removing /google/minikube/.minikube/machines/minikube ...
+* Removed all traces of the "minikube" cluster.
+```
 
 ## Congratulations!
 
